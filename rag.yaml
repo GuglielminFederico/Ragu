@@ -1,0 +1,5 @@
+input_path: 'input'
+file_list: ['test_article.pdf']
+output_path: 'knowledge_base'
+image_path: 'knowledge_base/images'
+docling_config: 'docling.yaml'

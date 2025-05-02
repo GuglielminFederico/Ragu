@@ -1,47 +1,47 @@
 PdfPipeline : 
-  create_legacy_output: True
-  document_timeout: True
+  create_legacy_output: False
+  document_timeout: null
+  generate_parsed_pages: False
+  enable_remote_services: True
+  allow_external_plugins: False
+  do_code_enrichment: False
+  do_formula_enrichment: False
+  force_backend_text: False
+
   AcceleratorOptions:
     num_threads: 4
     device: 'auto'
     cuda_use_flash_attention2: False
-  enable_remote_services: False
-  allow_external_plugins: False
-  artifacts_path: None
-  images_scale: 1.0
-  generate_page_images: False
-  generate_picture_images: False
+
+  generate_table_images: False
   do_table_structure: True
-  do_ocr: True
-  do_code_enrichment: False
-  do_formula_enrichment: False
-  do_picture_classification: False
-  do_picture_description: False
-  force_backend_text: False
   TableStructureOptions:
     do_cell_matching: True
     mode: 'accurate'
-  ocr_options:
-    lang: ['fr', 'de', 'es', 'en']
+
+  do_ocr: True
+  ocr_kind: 'easyocr'
+  easy_ocr_options:
+    lang: ['en']
     force_full_page_ocr: False
-    bitmap_are_threshold: 0.05
-    use_gpu: None
     confidence_threshold: 0.5
-    model_storage_directory: None
+    model_storage_directory: null
     recog_network: 'standard'
     download_enabled: True
-  picture_descritopn_options:
-    batch_size: 8
+
+  images_scale: 2
+  generate_page_images: True
+  generate_picture_images: True
+  do_picture_classification: False
+  do_picture_description: False
+  picture_description_options:
+    batch_size: 1
     scale: 2
     picture_area_threshold: 0.05
-    do_formula_enrichment: False
-    do_picture_classification: False
-    do_picture_description: False
-    force_backend_text: False 
     repo_id: 'HuggingFaceTB/SmolVLM-256M-Instruct'
     prompt: 'Describe this image in a few sentences.'
     generation_config: 
       max_new_tokens: 200
       do_sample: True
-  generate_table_images: False
-  generate_parsed_images: False
+
+

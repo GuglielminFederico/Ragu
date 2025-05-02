@@ -7,6 +7,7 @@ brew tap mongodb/brew
 brew install mongodb-community@7.0
 
 ### Use Docker
+Run the docker app, then:
 
 docker run -d \
   --name mongodb \
@@ -44,3 +45,8 @@ docker compose pull
 docker compose up -d
 
 Remember that on your ATTU server the name of the Milvus server is specified in the docker-compose. In this case is milvus-standalone as specified in the container name.
+
+### TODO
+# Create the Knowledge
+# Use Docling -> wrap it in a API, minimize the input parameters need with setting the best default for our use case
+# Insert the KB in Mongo and build a graph
