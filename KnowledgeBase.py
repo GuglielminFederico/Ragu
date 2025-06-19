@@ -27,7 +27,7 @@ class KnowledgeBase:
         self.text_keys = {'self_ref', 'parent', 'label', 'prov', 'text_content'}
         self.table_keys = {'self_ref', 'parent', 'label', 'prov', 'captions', 'num_rows', 'num_cols', 'data'}
         self.image_keys = {'self_ref', 'parent', 'label', 'prov', 'captions'}
-        self.cell_keys = {'start_row_offset_idx',  'start_col_offset_idx', 'text', 'column_header'}
+        self.cell_keys = {'start_row_offset_idx',  'start_col_offset_idx', 'text', 'column_header', 'bbox'}
 
     @staticmethod
     def image_to_text(image_path):
@@ -74,13 +74,15 @@ class KnowledgeBase:
             "label": input_dict["label"],
             "document": input_dict["document"],
             "page": input_dict["page"],
+            "bbox": input_dict["bbox"],
             "text_content": input_dict["text_content"],
             "table_metadata": {
                 "header": input_dict["header"],
-                "content": input_dict["content"],
-                "caption": input_dict.get("caption", ""),
+                "caption": input_dict.get("table_caption", ""),
                 "num_columns": input_dict.get("num_columns", ""),
-                "num_rows": input_dict.get("num_rows", "")
+                "num_rows": input_dict.get("num_rows", ""),
+                "content": input_dict["content"],
+                "structure": input_dict["structure"]
             }
         }
         return transformed_table
@@ -94,6 +96,7 @@ class KnowledgeBase:
             "label": input_dict["label"],
             "document": input_dict["document"],
             "page": input_dict["page"],
+            "bbox": input_dict["bbox"],
             "text_content": input_dict["text_content"],
             "image_metadata": {
                 "image_caption": input_dict["image_caption"]
@@ -189,6 +192,7 @@ class KnowledgeBase:
         """Refine document knowledge base."""
         image_descr = json.load(open('image_descr.json'))
 
+        final_elements = []
         for filename in os.listdir(self.output_path):
             file_path = os.path.join(self.output_path, filename)
             if os.path.isfile(file_path) and file_path.lower().endswith(('.json')):
@@ -226,6 +230,8 @@ class KnowledgeBase:
 
                     table['header'] = []
                     table['content'] = []
+                    table['structure'] = []
+
                     if table['table_data']: 
                         table['num_columns'] = max([x['start_col_offset_idx'] for x in table['table_data']])
                         table['num_rows'] = max([x['start_row_offset_idx'] if table['table_data'] else 0 for x in table['table_data']])
@@ -240,6 +246,9 @@ class KnowledgeBase:
                         if cell['column_header']:
                             table['header'].append(cell['text']) 
 
+                        if 'bbox' in cell.keys():
+                            table['structure'].append((cell['text'],cell['bbox']))
+
                         table['content'][cell['start_row_offset_idx']].append(cell['text'])
 
                     table['content'] = [' | '.join(row) for row in table['content']]    
@@ -253,9 +262,10 @@ class KnowledgeBase:
 
                 sorted_elements = self.sort_elements(filtered_elements)
 
-                # add page number to each element
+                # add page number and bbox to each element
                 for element in sorted_elements:
                     element['page'] = element['prov'][0]['page_no']
+                    element['bbox'] = element['prov'][0]['bbox']
                     element.pop('prov', None)
 
                 # add caption to each element
@@ -300,23 +310,10 @@ class KnowledgeBase:
                 #create unique id for each element
                 for el in sorted_elements:
                     el["_id"] = self.generate_unique_id(el)
-                    
-                with open('refined_kb.json', 'w') as f:
-                    json.dump(sorted_elements, f, indent=2)
-                #column renaming according to AIDA
-                # for elem in sorted_elements:
-                    
-                #     elem['document_name'] = elem.pop('document')
-                #     elem['extracted_text'] = elem.pop('text_content')
-                #     elem['text_label'] = elem.pop('label')
-                #     elem['associated_title_or_section'] = elem.pop('title')
-                #     if elem['text_label'] == 'picture':
-                #         elem['figure_metadata'] = elem.pop('image_metadata')
-                #     elem['extracted_text_type'] = 'original' if elem['text_label'] not in ['picture', 'table'] else 'generated'
-                #     elem['element_id'] = ' ' if elem['text_label'] not in ['picture', 'table'] else elem['self_ref']
-                #     elem['merge_with_next_text'] = False
-                #     elem.pop('self_ref')
-                #     elem.pop('parent')
+                final_elements.extend(sorted_elements)
+
+        with open('refined_kb.json', 'w') as f:
+            json.dump(final_elements, f, indent=2)
 
 
     def delete_knowledge(self, key):

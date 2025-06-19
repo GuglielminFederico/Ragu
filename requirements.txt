@@ -3,3 +3,5 @@ ipykernel
 pymongo
 numpy
 pymilvus==2.1.1 --no-cache-dir
+docling[vlm]
+hf_xet
